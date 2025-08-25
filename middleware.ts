@@ -5,26 +5,33 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { hostname } = req.nextUrl;
 
-  // Obtiene el dominio base de la URL de Vercel (ej: vercel.app)
-  // Esto es para que funcione tanto en preview como en producción.
-  const mainDomain = hostname.split('.').slice(-2).join('.');
+  // --- ¡LÓGICA MEJORADA! ---
 
-  // Extrae el subdominio
-  const subdomain = hostname.replace(`.${mainDomain}`, '');
+  // Define tus dominios principales. El middleware los ignorará.
+  // Añade aquí cualquier otro dominio que uses.
+  const mainDomains = [
+    'gestularia.com',
+    'www.gestularia.com',
+    'prueba-gold-six.vercel.app',
+  ];
 
-  // Si no es el dominio principal y no es 'www', lo consideramos un subdominio de tienda
-  if (subdomain && subdomain !== 'www') {
-    console.log(`Rewriting for subdomain: ${subdomain}`);
-    // Reescribe la URL internamente a la página de la tienda
-    url.pathname = `/_stores/${subdomain}${url.pathname}`;
-    return NextResponse.rewrite(url);
+  // Si el hostname actual es uno de los dominios principales, no hacemos nada.
+  if (mainDomains.includes(hostname)) {
+    return NextResponse.next();
   }
 
-  // Si no es un subdominio, no hace nada
-  return NextResponse.next();
+  // Si no es un dominio principal, asumimos que es un subdominio de tienda.
+  // Extraemos el slug (la primera parte del hostname).
+  const subdomain = hostname.split('.')[0];
+
+  // Reescribimos la URL para que apunte a la página de la tienda.
+  console.log(`Rewriting for subdomain: ${subdomain}`);
+  url.pathname = `/_stores/${subdomain}${url.pathname}`;
+  
+  return NextResponse.rewrite(url);
 }
 
-// Configuración para que el middleware se ejecute en todas las rutas
+// La configuración del matcher se mantiene igual.
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
