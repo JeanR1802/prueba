@@ -25,7 +25,7 @@ export async function createStoreAction(formData: FormData) {
   // --- ¡CAMBIO IMPORTANTE AQUÍ! ---
   // Ahora redirigimos al subdominio recién creado.
   // NOTA: Cambia "prueba-gold-six.vercel.app" por el dominio principal de tu proyecto en Vercel.
-  const domain = process.env.VERCEL_URL || 'gestularia.com';
+  const domain = 'gestularia.com';
   const newUrl = `https://${slug}.${domain}`;
   
   redirect(newUrl);
