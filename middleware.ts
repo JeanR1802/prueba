@@ -5,28 +5,31 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { hostname } = req.nextUrl;
 
-  // --- ¡LÓGICA MEJORADA! ---
+  // --- ¡LÓGICA MEJORADA CON LOGS DE DEPURACIÓN! ---
 
-  // Define tus dominios principales. El middleware los ignorará.
-  // Añade aquí cualquier otro dominio que uses.
+  // Log para cada petición que entra al middleware
+  console.log(`[Middleware] Hostname recibido: ${hostname}`);
+
   const mainDomains = [
     'gestularia.com',
     'www.gestularia.com',
     'prueba-gold-six.vercel.app',
   ];
 
-  // Si el hostname actual es uno de los dominios principales, no hacemos nada.
+  // Comprobamos si el hostname es uno de los dominios principales
   if (mainDomains.includes(hostname)) {
+    console.log(`[Middleware] El hostname es un dominio principal. No se reescribe.`);
     return NextResponse.next();
   }
 
-  // Si no es un dominio principal, asumimos que es un subdominio de tienda.
-  // Extraemos el slug (la primera parte del hostname).
+  // Si llegamos aquí, no es un dominio principal. Lo tratamos como subdominio.
   const subdomain = hostname.split('.')[0];
+  console.log(`[Middleware] El hostname es un subdominio: "${subdomain}"`);
 
-  // Reescribimos la URL para que apunte a la página de la tienda.
-  console.log(`Rewriting for subdomain: ${subdomain}`);
-  url.pathname = `/_stores/${subdomain}${url.pathname}`;
+  // Reescribimos la ruta para que apunte a la página de la tienda
+  const rewritePath = `/_stores/${subdomain}${url.pathname}`;
+  console.log(`[Middleware] Reescribiendo la ruta a: ${rewritePath}`);
+  url.pathname = rewritePath;
   
   return NextResponse.rewrite(url);
 }
