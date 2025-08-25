@@ -5,38 +5,24 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { hostname } = req.nextUrl;
 
-  // --- LÓGICA BASADA EN EL EJEMPLO OFICIAL DE VERCEL ---
+  // Tu dominio principal
+  const rootDomain = 'gestularia.com';
 
-  // Obtenemos el dominio raíz desde las variables de entorno.
-  // Es más flexible que tener una lista fija en el código.
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'gestularia.com';
-
-  console.log(`[Middleware] Hostname: ${hostname}, Root Domain: ${rootDomain}`);
-
-  // Si el hostname es exactamente el dominio raíz (con o sin www),
-  // no hacemos nada y mostramos la página principal.
-  if (hostname === rootDomain || hostname === `www.${rootDomain}`) {
-    console.log('[Middleware] Es un dominio principal. No se reescribe.');
+  // Ignora el dominio principal y las URLs de Vercel
+  if (
+    hostname === rootDomain ||
+    hostname === `www.${rootDomain}` ||
+    hostname.endsWith('.vercel.app')
+  ) {
     return NextResponse.next();
   }
 
-  // Si el hostname es diferente, extraemos el subdominio.
-  // Esta lógica extrae "tienda" de "tienda.gestularia.com".
+  // Extrae el subdominio
   const subdomain = hostname.replace(`.${rootDomain}`, '');
 
-  // Evitamos que las URLs de Vercel (ej: prueba-gold-six.vercel.app)
-  // se traten como subdominios.
-  if (subdomain === hostname) {
-     console.log('[Middleware] Es una URL de Vercel o un dominio no relacionado. No se reescribe.');
-     return NextResponse.next();
-  }
-
-  console.log(`[Middleware] Subdominio de tienda detectado: "${subdomain}"`);
-
-  // Reescribimos la ruta para que apunte a la página de la tienda.
-  const rewritePath = `/_stores/${subdomain}${url.pathname}`;
-  console.log(`[Middleware] Reescribiendo la ruta a: ${rewritePath}`);
-  url.pathname = rewritePath;
+  // Reescribe la URL a una carpeta con el mismo nombre que el subdominio
+  // Ejemplo: "tienda1.gestularia.com" -> "/tienda1"
+  url.pathname = `/${subdomain}${url.pathname}`;
   
   return NextResponse.rewrite(url);
 }
