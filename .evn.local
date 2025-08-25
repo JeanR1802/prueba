@@ -1,0 +1,4 @@
+# Claves de Supabase
+# Las encuentras en tu proyecto de Supabase > Settings > API
+NEXT_PUBLIC_SUPABASE_URL="https://tu-id-de-proyecto.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="tu-llave-anon-publica"
