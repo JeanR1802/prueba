@@ -31,7 +31,7 @@ export function CreateStoreForm() {
           placeholder="nombre-de-tu-tienda"
           className="w-full p-3 pr-28 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">.tu-dominio.com</span>
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">.gestularia.com</span>
       </div>
       <SubmitButton />
     </form>
