@@ -1,37 +1,45 @@
-// No vamos a buscar en la base de datos por ahora,
-// solo queremos confirmar que la página se muestra.
+import { createClient } from '@supabase/supabase-js';
+import { notFound } from 'next/navigation';
+
+async function getStoreData(slug: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error('Error: Variables de entorno de Supabase no encontradas.');
+    return null;
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const { data: store, error } = await supabase
+    .from('Store')
+    .select('name, heroTitle')
+    .eq('slug', slug)
+    .single();
+
+  if (error && error.code !== 'PGREST116') { // Ignoramos el error si no encuentra la fila
+    console.error('Error de Supabase:', error);
+  }
+  
+  return store;
+}
 
 export default async function StorePage({ params }: { params: { slug: string } }) {
-  
-  // Si llegamos aquí, significa que el middleware y el enrutamiento funcionan.
-  
+  const store = await getStoreData(params.slug);
+
+  if (!store) {
+    notFound();
+  }
+
   return (
-    <main style={{
-      display: 'flex',
-      minHeight: '100vh',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#f0f9ff',
-      fontFamily: 'sans-serif'
-    }}>
-      <div style={{
-        textAlign: 'center',
-        padding: '40px',
-        background: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-      }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: '#1e3a8a' }}>
-          ¡Página Encontrada!
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-50 text-center">
+        <h1 className="text-5xl font-bold text-gray-800">
+          Bienvenido a {store.name || 'tu tienda'}
         </h1>
-        <p style={{ marginTop: '1rem', fontSize: '1.25rem', color: '#374151' }}>
-          El subdominio detectado es: <strong style={{ color: '#1d4ed8' }}>{params.slug}</strong>
+        <p className="mt-4 text-lg text-gray-600">
+          Estás viendo la tienda del subdominio: <strong>{params.slug}</strong>
         </p>
-        <p style={{ marginTop: '2rem', color: '#6b7280' }}>
-          Si ves esto, el sistema de subdominios funciona.
-        </p>
-      </div>
     </main>
   );
 }

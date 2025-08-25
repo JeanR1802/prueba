@@ -5,23 +5,33 @@ export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const { hostname } = req.nextUrl;
 
-  // --- ¡LÓGICA MEJORADA Y MÁS ROBUSTA! ---
+  // --- LÓGICA BASADA EN EL EJEMPLO OFICIAL DE VERCEL ---
 
-  console.log(`[Middleware] Hostname recibido: ${hostname}`);
+  // Obtenemos el dominio raíz desde las variables de entorno.
+  // Es más flexible que tener una lista fija en el código.
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || 'gestularia.com';
 
-  // Comprobamos si el hostname es un dominio principal o una URL de Vercel.
-  if (
-    hostname === 'gestularia.com' ||
-    hostname === 'www.gestularia.com' ||
-    hostname.endsWith('.vercel.app') // Esto ignora todas las URLs de Vercel.
-  ) {
-    console.log(`[Middleware] El hostname es un dominio principal o de Vercel. No se reescribe.`);
+  console.log(`[Middleware] Hostname: ${hostname}, Root Domain: ${rootDomain}`);
+
+  // Si el hostname es exactamente el dominio raíz (con o sin www),
+  // no hacemos nada y mostramos la página principal.
+  if (hostname === rootDomain || hostname === `www.${rootDomain}`) {
+    console.log('[Middleware] Es un dominio principal. No se reescribe.');
     return NextResponse.next();
   }
 
-  // Si no es ninguno de los anteriores, es un subdominio de tienda.
-  const subdomain = hostname.split('.')[0];
-  console.log(`[Middleware] El hostname es un subdominio de tienda: "${subdomain}"`);
+  // Si el hostname es diferente, extraemos el subdominio.
+  // Esta lógica extrae "tienda" de "tienda.gestularia.com".
+  const subdomain = hostname.replace(`.${rootDomain}`, '');
+
+  // Evitamos que las URLs de Vercel (ej: prueba-gold-six.vercel.app)
+  // se traten como subdominios.
+  if (subdomain === hostname) {
+     console.log('[Middleware] Es una URL de Vercel o un dominio no relacionado. No se reescribe.');
+     return NextResponse.next();
+  }
+
+  console.log(`[Middleware] Subdominio de tienda detectado: "${subdomain}"`);
 
   // Reescribimos la ruta para que apunte a la página de la tienda.
   const rewritePath = `/_stores/${subdomain}${url.pathname}`;
@@ -31,7 +41,6 @@ export function middleware(req: NextRequest) {
   return NextResponse.rewrite(url);
 }
 
-// La configuración del matcher se mantiene igual.
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
